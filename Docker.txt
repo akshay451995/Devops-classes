@@ -1,0 +1,292 @@
+DOCKER
+
+in real time there are two types of applicationns: 
+monlothic application - all applications/ functionalities of apps (ex: whatsapp audio 
+callling, video calling, messaging,etc) running in a single server (application server)
+microservice based application - different services/ functionalities running on 
+different servers (advantage - upgrades on one functionality on one server wont 
+affect other functionalities)
+
+Docker: To run the microservices the best practise is containerized tools
+
+VMWARE tool: by this tool/app you can install many os in one hardware machine by 
+dividing the ram and cpu's
+
+virtualization- with the help of hypervisors building os using hardware of the system
+containerization- consuming os resources is called containerization and not hardware 
+resources
+
+to manage the vms and distribute them according to usage we have a tools called docker
+
+in aws if we install an os it is called ec2-instance, in docker if we install an 
+instance it is called container
+(advantage of docker -very easy to manage, it takes very less time)
+
+official website for docker (dockerhub.com)
+docker image - OS snapshot 
+docker container -running instance of the OS of docker images
+
+install docker in ec2-instance 
+yum install docker -y 
+systemctl start docker 
+systemctl enable docker 
+docker images (shows docker images available) 
+docker ps (shows all containers installed in docker)
+docker run -dit ubuntu (creates a ubuntu vm/ container)
+(-d is detached mode, -it means interactive terminal)
+docker run -dit centos (creates a centos container)
+docker exec -it <containerid> /bin/bash (to login to the container) 
+docker attach <containernameorid> (if exec not working to login to the container)
+(you can also use container name in place of container id)
+docker stats (shows each container utilization: how much cpu it is using)
+
+docker run -dit <applicationname> (to run application images)
+example: docker run -dit httpd
+
+docker stop <containernameorid> (to stop containers) 
+docker start <containernameorid> (to start container)
+docker restart <containernameorid> (to restart container)
+docker rm <containernameorid> (to delete container completely)
+docker rm -f <containernameorid> (to both stop and remove container)
+docker commit <containername> <imagename> (to create custom images of containers)
+
+in a non docker image 
+yum install httpd -y
+systemctl start httpd
+edit inbound rules in security groups- add rule port no-80
+<publicip>:80 (to test httpd is running in the instance)
+
+now to access httpd container in docker (httpd is installed in docker container and not 
+in docker instance) port forwarding is used
+port forwarding- the docker instance as well as the application container(httpd container)
+will have a port number
+the docker instance port will connect to the application port
+so whoever connects to the docker instance port will be redirected to the application port
+
+docker run -dit -p 80:80 <imagenameofhttpdcontainer> (1st 80 is dockerhost port any number 
+you want to give and second 80 is application port which varies based on application port 
+numbers)
+
+docker run -dit -p 8080:8080 <imagenameofjenkinscontainer>(for jenkins)
+(usually docker instance port number would be the same as application port)
+
+same docker container port numbers cannot be given
+
+TO CREATE AND PUSH THE IMAGES FROM LOCAL SERVER TO DOCKERHUB 
+
+create the docker image you want 
+docker login
+username prompt appears
+password prompt appears 
+docker commit <containername> <dhusername/newimagename> (to create images to push to 
+dockerhub)
+docker push <dhusername/newimagename> (to push images from local registry to docker hub 
+account)
+
+go to docker hub account and open repositories and you can see the image you have created
+to make it as a private image go to settings and click on make private
+
+IN AWS: we use ECR elastic container registry to share and deploy container software 
+publicly or privately
+
+in the ECR - the repository name is usually the project name in real time
+registry - the service
+repository - the folder
+
+docker inspect <containeridorname> (shows complete information of the container)
+
+/var/lib/docker/overlay2/hashid/merged (this folder gives access to the container from 
+docker host)
+(hashid is different for all the containers)
+
+DOCKER VOLUMES:
+to create containers with attached volumes
+docker run -dit -p 80:80 -v <volumename>:<path-of-the-folder-of-application> <imagename>
+(path of the folder can be seen in dockerhub in the application image details)
+(example- docker run -dit -p 80:80 -v volume1:/usr/local/apache2/htdocs/ httpd (for httpd 
+application))
+docker volume ls (shows all the volumes created for the containers)
+
+ifconfig - shows the details of the networks
+
+docker network ls (shows the network of docker containers)
+
+Docker supports three types of networks - bridge network, host network, none network
+Bridge network - if docker host and docker container network both are different it is called 
+as bridge network (Bridge -connect 2 edge points)
+Host network - if docker host and docker container network both are same it is called as 
+host network
+None network - if no network then it is called as none network
+
+DOCKER FILE -another way to create the images
+create docker file in any folder
+vi Dockerfile - 
+example inside docker file: 
+
+FROM <imagename> (example: ubuntu)
+RUN <command name> (example you want to update: apt  update -y)
+:wq
+
+in the same folder as docker file:
+docker build . -t <dockerhubidname>/<newimagename> 
+docker images (shows the newly created images) 
+vi Dockerfile - 
+example inside docker file: 
+
+FROM <imagename> (example: ubuntu)
+RUN <command name> (example you want to update: apt  update -y)
+RUN touch /tmp/file1 (to create files in the image)
+:wq
+(run is the instruction to run any linux command in the image)
+now to build another image with the created file and update 
+docker build . -t <dockerhubidname>/<newimagename>
+
+TO GIVE TAGS TO CONTAINER IMAGE ADD : AFTER IMAGENAME (Example: ubuntu:version1 (here 
+version1 is the tag))
+
+
+DOCKER NETWORK:
+
+ifconfig (shows the details of the docker host, i.e, docker0)
+
+TO KNOW THE DOCKER NETWORK DETAILS:
+
+docker network ls
+docker network inspect <networkid>
+
+TO CREATE A NEW NETWORK IN DOCKER:
+docker network create --subnet=<rangeyouwant> --gateway=<gatewayyouwanttoaccess> --ip-range=<ip-rangeyouwant> <networkname>
+docker network create --subnet=10.0.0.0/16 --gateway=10.0.4.0 --ip-range=10.0.0.0/16 devopsnetwork
+
+to create containers using new created network:
+docker run -dit --network=<networkname> <imagename> 
+
+to see the network or ip of a contianer:
+docker inspect <contianerid>
+
+to see the connection between both the container networks:
+ping <ipaddressofcontainers>
+(to install ping in ubuntu <apt install iputils-ping -y>)
+
+to rename existing images:
+docker tag <imageid> <newimagename>
+
+Dockerfile examples:
+
+FROM <imagename>
+MAINTAINER <personname> <<email@mail.com>>
+RUN apt-get update && apt-get install apache2 -y && rm /var/www/html/index.html && rm -rf /var/lib/apt/lists/*
+
+(to run update install apache2 and remove respective files in the container created from 
+the newly created image)
+
+				(OR)
+
+FROM <imagename>
+MAINTAINER <personname> <<email@mail.com>>
+RUN \
+    apt-get update && \
+    apt-get install apache2 -y && \ 
+    rm /var/www/html/index.html && \ 
+    rm -rf /var/lib/apt/lists/*
+
+(to run update install apache2 and remove respective files in the container created from 
+the newly created image)
+
+FROM ubuntu
+RUN apt update -y
+RUN touch /tmp/file1
+COPY file123 /tmp
+RUN mkdir /app
+VOLUME /app
+WORKDIR /app
+RUN chmod 777 /app
+RUN useradd akshay
+USER akshay
+
+(to copy the file123 in /tmp of new container; create a directory /app; map the volume 
+of the container with /app; as u open the container /app would be the working directory; 
+change the permissions of /app to 777; create user akshay and run the container with akshay 
+user rather than root user)
+
+CMD and ENTRYPOINT in dockerfile examples
+(what is cmd and entrypoint? why do we need cmd and entrypoint?
+A) to start any application at container run time we use cmd and entrypoint)
+
+FROM centos
+CMD echo Hi
+(or)
+ENTRYPOINT echo Hi
+
+while creating container u can overwrite the entries in case of CMD and not in entrypoint
+(entrypoint cannot be overwritten)
+
+example: docker run -it <imagenameorid> echo hello (hello will be echoed in place of hi)
+
+to give both entrypoint and cmd in combination: 
+
+FROM centos
+ENTRYPOINT ["echo"]
+CMD ["Hi"]
+
+example for creating container in combinations:
+docker run -it <imagenameorid> hello
+(the message will echo hello in case of hi)
+
+
+diff between vm ware and docker
+
+VMWARE 					DOCKER
+1) vms are big in foot print		1) it takes very less time to install/update/start/
+and takes time for install/update/	restart/migrate/backup
+start/restart/migrate/backup		
+2)vms need deciated resources 		2) no dedicated resources required
+3) vm ware is paid			3) docker is open source
+4) with the help of vm ware we are	4) with the help of docker we are sharing resources 
+sharing the hardware resources to 	with the container
+the vms
+
+uses of creating images
+1) to recreate the same servers
+2) for backup purpose (if i want to change the configuration of the present server i will 
+create an image and then change the configuration so that if the changed server is not 
+working i can shift back to the old server)
+
+TASKS: 
+how to rename a container 
+A) docker rename <existingcontainername> <newcontainername>
+how to do portforwarding for existing container
+A) method 1- create a custom image and launch a new container with the same image and assign the port numbers while launching the container 
+method2- change the docker config files
+
+you are not able to create your container what could be the reason
+
+my container keeps on restaring. what could be the reason
+
+i am not able to access my application from outside... what could be the reason
+
+if i restart my docker host my docker container should come up automatically.
+(how to enable auto restart of a docker container after system reboot/restart)
+A) docker update --restart=always <container id or container name>
+
+how to create our own network? (i want in 10 series 10.0.0.0/16 in place of 172) 
+
+docker network create --subnet=<rangeyouwant> --gateway=<gatewayyouwanttoaccess> --ip-range=<ip-rangeyouwant> <networkname>
+
+example:
+docker network create --subnet=10.0.0.0/16 --gateway=10.0.4.0 --ip-range=10.0.0.0/16 devopsnetwork
+
+
+(how to change the default docker network)
+(/16 means 2 to the power of 16) (if /24 2 to the power of 32-24 i.e, 2 to the power of 8)
+
+if my contianer restarts/stopped/exited, i should get an alert
+(or) how to monitor my docker containers?
+
+i want to limit memory and cpu for my containers - example: not more than 500mb 
+
+
+
+
+
+

@@ -1,0 +1,111 @@
+K8s-Installation steps
+Srinivasarao Parvathaneni
+Wed 18-09-2019 15
+55
+
+To: Amarender Busani <abusani@innominds.com>
+K8 Installation - kubeadm
+https://www.youtube.com/watch?v=fT89wBxT1pI
+1) Give Hostname :
+sudo su -
+hostnamectl set-hostname 'k8s-master'
+bash
+yum install update -y
+sudo su -
+hostnamectl set-hostname 'k8s-node1'
+bash
+yum install update -y
+2) Disable SWAP & SELinux:
+swapoff -a
+setenforce 0
+sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+grep disabled /etc/sysconfig/selinux
+reboot
+
+3) Install Docker :
+sudo su -
+echo "[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg" > /etc/yum.repos.d/docker.repo
+#yum install docker-engine –y
+yum install docker-18.06.1ce-10.amzn2.x86_64 -y
+systemctl start docker && systemctl enable docker
+4) Install K8s:
+
+echo "[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg" >
+/etc/yum.repos.d/kubernetes.repo
+
+01/10/2019 Mail - Amarender Busani - Outlook
+
+https://outlook.office.com/mail/search/id/AAQkAGU0ZGZhNDhjLTk5MDctNDVmYi05ZWFhLTg1ZDU1NWVmYzdjZgAQAOCExz%2B65SZHuOFSwX%2... 2/3
+yum install -y kubelet kubeadm kubectl
+rpm -qa | grep kube
+systemctl start kubelet && systemctl enable kubelet
+
+vi /etc/hosts
+35.173.192.46k8s-master
+172.31.26.88 k8s-node1
+echo "172.31.45.21 k8s-master
+172.31.86.140 k8s-node1" >> /etc/hosts
+curl k8s-node1:32430
+6) For Redhat/Centos
+echo "net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1" > /etc/sysctl.d/k8s.conf
+sysctl --system
+
+7) Intializing Master Node:
+#kubeadm init --apiserver-advertise-address=10.0.15.10 --pod-network-cidr=10.244.0.0/16
+$ kubeadm init --pod-network-cidr=10.240.0.0/16
+.....
+....
+Your Kubernetes control-plane has initialized successfully!
+To start using your cluster, you need to run the following as a regular user:
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+https://kubernetes.io/docs/concepts/cluster-administration/addons/
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.93.85:6443 --token 6x1bjp.ryf4wyg28cecrtru --discovery-token-ca-cert-
+hash sha256:0b40d8b9489a7b194b53d0218f97cd703de7372710d75425f7d85f877e44b396
+
+8) Configure POd network in master Node:
+
+kubectl apply -f
+https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f
+https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml
+
+9) Join Worker nodes to cluster
+
+01/10/2019 Mail - Amarender Busani - Outlook
+
+https://outlook.office.com/mail/search/id/AAQkAGU0ZGZhNDhjLTk5MDctNDVmYi05ZWFhLTg1ZDU1NWVmYzdjZgAQAOCExz%2B65SZHuOFSwX%2... 3/3
+Run in worker node:
+
+kubeadm join 172.31.36.90:6443 --token z4buxb.ahdj8m4vuo1rve6w --discovery-token-ca-
+cert-hash
+
+sha256:6fa8c306384f997b994cd66736cb1fc5e638b0935acddd15d99ea7b6d97023c4
+kubectl get nodes ( in master)
+10) Tocken will expire after 24 hours
+Create new tocken in master node
+kubeadm token create --print-join-command
+11) Deploy application:
+in master :
+kubectl create ns web
+kubectl create deployment nginx --image=nginx -n web
+kubectl describe deployment nginx
+kubectl create service nodeport nginx --tcp=80:80 -n web
+kubectl get deployments -n web

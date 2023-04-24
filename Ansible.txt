@@ -1,0 +1,798 @@
+
+Ansible 
+
+set hostnames
+
+yum install ansible  (to install ansible)
+see the output and run command
+
+
+cd /etc/ansible (ansible folder)
+open hosts folder and add hosts in groups
+
+vi hosts (add groups and under groups add public ips)
+[group name1]
+<copy public ip's>
+
+[group name2]
+<copy public ip's>
+
+localhost ansible_connection=local (to add local host)
+
+generate keys in ansible master
+ 
+ssh-keygen 
+cd /root/.ssh (open file in which key is saved) 
+cat id_rsa.pub (open public key and copy public key)
+
+Open each server and add public key into each server
+set hostnames
+cd /root/.ssh (inside this add public key in authorized_keys file) 
+
+ssh-copy-id -i ~/.ssh/mykey user@host (to directly copy key from master to agents)
+
+From ansible 
+ssh root@ip (to access any server without password)
+
+Test from asnible by
+ansible -m ping all
+
+
+ansible -m user -a "name=akshay state=present" <groupname> (if all groups press all in place of groupname)
+(to add users in group servers or in all servers)
+ansible -m user -a "name=akshay state=absent" <groupname> (if all groups press all in place of groupname)
+(to delete users in group servers or in all servers)
+ansible -m yum -a "name=httpd state=installed" <groupname or all>
+(to install packages in group servers or all servers)
+ssh-copy-id
+ansible  -m service -a "name=httpd state=started" all
+(to start packages in group servers or all servers)
+
+ansible  -m service -a "name=httpd state=stopped" all
+(to stop packages in group servers or all servers)
+
+ansible -m file -a "name=/path/filename state=touch" all (to create a file in all the servers)
+
+ansible -m file -a "name=/path/filename state=absent" all (to delete a file in all the servers)
+
+ansible -m  copy -a "src=file-to-be-copied dest=file-to-be-pasted-with-path" <groupname>(to copy a file into all servers)
+
+ansible -m shell -a "linux command" <groupname> (to use linux commands)
+
+ansible-doc -l (to list all the modules in ansible)
+ansible-doc -l|wc (to list the number of lines words adn chracters of all the modules)
+
+asnible -m setup <hostgroup-name> (to gather the information from the host -gatherfacts)
+
+write a program - creating a playbook in ansible (to complete multiple tasks at a time )
+(create playbooks for reusable purpose)
+
+Inside ansible playbook:
+
+---
+- hosts: <hostgroupname>
+  tasks: 
+  - name: creating a user
+    user: name=akshay state=present
+  - name: creating a file
+    file: name=/tmp/filename state=touch
+  - name: install httpd
+    yum: name=httpd state=installed
+(to create user, file and install httpd all at once)
+
+ansible-playbook <playbook-name.yaml> (to run the playbook and complete the tasks in the playbook)
+ansible-playbook <playbook-name.yaml> --syntax-check (to check if the syntax is correct)
+ansible-playbook <playbook-name.yaml> --check (to perform dry run/trial run but doesnt perform task)
+
+playbook shortcuts:
+ansible-playbook <playbook-name.yaml> --list-tasks (shows all the tasks available in the playbook)
+ansible-playbook <playbook-name.yaml> --start-at-task="<taskname>" (to run playbook from specific task)
+ansible-playbook <playbook-name.yaml> --step (to run only specific tasks in playbook) 
+this is called as interactive run/ interactive method 
+
+Tagging:
+---
+- hosts: <hostgroupname>
+  tasks: 
+  - name: creating a user
+    user: name=akshay state=present
+    tags: user
+  - name: creating a file
+    file: name=/tmp/filename state=touch
+    tags: file
+  - name: install httpd
+    yum: name=httpd state=installed
+    tags: httpd 
+  - name: creating a user
+    user: name=akshay state=present  
+    tags: user
+give tags to tasks to perform only specific tasks with tags 
+ansible-playbook <playbook-name.yaml> --tags <tagname> (to perform specific tasks with same tag name)
+ansible-playbook <playbook-name.yaml> --list tag1,tag2 (to list all the tags in the playbook)
+ansible-playbook <playbook-name.yaml> --skip-tags tagname(to skip tasks with specific tag)
+
+playbook commands 
+  - name:create a user
+    user: name={{ item }} state=present
+    with_items: 
+     - akshay
+     - akshay1
+     - akshay2
+     - akshay3
+     - akshay4
+(to create 5 users at a time)
+
+To ignore errors and proceed to next task:
+- hosts: <hostgroupname>
+  tasks: 
+  - name: creating a user
+    user: name=akshay state=present
+    ignore_errors: yes 
+(add this to ignore and continue to next task if error occurs in previous task)
+
+To perform block and rescue action in case of error:
+  tasks:
+  - name: checking file path
+    block:  
+    - name: checking file path
+      shell: ls -l /tmp/file
+    rescue: 
+    - name: create a file
+      file name= /tmp/file state=touch
+
+linear behaviour(linear strategy) of ansible- ansible performs one task completely in all servers and then moves on to next task
+
+ansible -m setup <hostgroupname>|grep -i os (gathering facts)(to show all host information about os)
+
+When condition:
+
+to create palys in different distributions (use when condition)
+---
+- hosts: <hostgroupname>
+  tasks: 
+  - name: creating a user
+    user: name=akshay state=present
+    when: ansible_os_family == "Redhat"
+(to run tasks only in redhat family servers)
+
+Register variable and debug module:
+
+---
+- hosts: <hostgroupname>
+  tasks: 
+  - name: creating a user
+    user: name=akshay state=present
+  - name: check kernel version
+    shell: uname -a
+    register: kernel_version
+  - debug:
+     var: kernel_version.stdout
+(to print the output)
+
+
+playbook to create directory
+---
+- hosts: all
+  tasks: 
+  - name: create directory and set permissions
+    file: 
+      path: /home
+      state: directory 
+      mode: 0755 (to give permssions as u=rwx,g=rx,o=rx)
+
+Modules:
+--user: to create  user
+--copy: to copy files
+--file: to create file
+--service: to start and stop packages/applications
+--yum: to install applications
+
+ 
+Templates and files
+(to copy config files as templates)
+
+to copy template as file :
+
+in the config file change the values which are varying as variables
+example: listen: {{ port_number }} 
+         username: {{user_name}}
+
+playbook to copy files and templates
+
+to copy file: 
+--- 
+- hosts: dev
+  tasks: 
+  - name: install httpd
+    yum: name=httpd state=installed
+  - name: copy the config
+    copy: src=httpd.conf dest=/etc/httpd/conf
+
+to copy template: 
+
+--- 
+- hosts: test 
+  tasks: 
+  - name: install httpd
+    yum: name=httpd state=installed
+  - name: copy the config
+    template: src=httpd.conf dest=/etc/httpd/conf
+
+comamnd to run the playbook with template values: 
+ansible-playbook <playbookname> --extra-vars port_number=100<desired value u want> --extra-vars user_name=akshay<desired username u want>
+
+ansible variable precedence means- the order in which ansible searches for the variable
+
+
+Handlers in ansible: 
+
+--- 
+- hosts: 
+  tasks: 
+  - name: install httpd
+    yum: name=httpd state=present
+  - name: start the application
+    service: name=httpd state=started
+  - name: copy the config
+    template: src=httpd.conf dest=/etc/httpd/conf
+    notify: restart the application 
+  
+
+
+
+    handlers: 
+    - name: restart the application
+      service: name=httpd state=restarted
+
+:wq!
+
+
+(specify notify to run handlers task only when that task is successful/ changed true
+mention the task name in handlers) 
+
+Ansible Roles: 
+cd /etc/ansible/roles
+ansible-galaxy init web <web is directory name> 
+cd web 
+ls 
+tasks is the main folder in web (role related tasks we will maintain)
+if it a file you will place file in files folder... template place in template folder 
+if handler in handler folder
+
+cd tasks create playbook in tasks 
+suppose main.yml is the playbook, vi main.yml
+in tasks playbook: 
+--- 
+  - name: install httpd 
+    yum: name=httpd state=installed
+  - name: start httpd 
+    service: name=httpd state=started
+  - name: copy httpd config
+    template: src=httpd.conf dest=/etc/httpd/conf/
+    notify: restart httpd
+
+in handlers playbook: 
+--- 
+  - name: restart httpd
+    service: name=httpd state=restarted 
+
+in templates: 
+create the config template for httpd by copying from source
+
+Listen {{ port }} (port is my variable name here)
+
+in vars playbook: 
+--- 
+(mention variable of your choice)
+port: 250 (if my variable in templates is port)
+
+in ansible folder create a playbook to run: example dev.yml
+in dev.yml: 
+
+--- 
+- hosts: dev
+  tasks: 
+  roles: 
+    - web (web is the name of my directory in roles)
+
+now run the playbook dev.yml to run the tasks in the web role
+ansible-playbook dev.yml 
+
+Ansible vault:  (encrypting playbooks)
+
+ansible-vault create akshay.yml
+new vault password prompt appears
+
+to  open/edit the encrypted file after writing the playbook
+ansible-vault edit akshay.yml
+to encrypt existing files
+asnible-vault encrypt akshay.txt 
+to view encrypted files
+ansible-vault view akshay.txt
+to decrypt files 
+ansible-vault decrypt akshay.yml
+to change the password for encrypted files
+asnible-vault rekey akshay.txt 
+
+to run vaulted playbook through the command prompt:
+ansible-playbook <playbookname> --ask-vault-pass 
+
+to not give password manually (to avoid password prompt)
+create a secret password file 
+vi .<filename> (example vi .akshay)
+in the file write your desired password 
+hint: if stored in home directory noone can access it
+ansible-playbook <playbookname.yml> --vault-password-file=.akshay
+
+
+ 
+login types
+
+1. username password		ssh root@ip      password prompt
+2. username privatekey		ssh -i amar.pem root@ip
+3. publickey privatekey		ssh root@ip
+
+ANSIBLE TASKS: 
+
+how to copy file  from an agent to master using ansible?
+---
+ - hosts: app
+   tasks:
+     - name: Fetch the file from the mwiapp01 to master
+       run_once: yes
+       fetch: src=/tmp/app01-to-app02.jar dest=buffer/ flat=yes
+       when: "{{ inventory_hostname == 'mwiapp01' }}"
+
+     - name: Copy the file from master to mwiapp02
+       copy: src=buffer/app01-to-app02.jar dest=/tmp/
+       when: "{{ inventory_hostname == 'mwiapp02' }}"
+
+
+
+to know a syntax: type syntax examples in google
+
+how to run tasks only on one agent?
+find out the process for adding windows machine as an agent
+can we install ansible master in windows?
+can we use different file as an inventory file? 
+how to create a user with encrypted password in master?
+how to know public ip of agents from ansible master?
+how to do do word completion/ suggestion automatically in linux
+how to run tasks in two or three hostgroups and not all or single hostgroup?
+
+
+Not manually- do tasks using playbook:
+1.fix warning in ansible
+  - name: resolving warning in the ansible results terminal 
+    lineinfile:
+      path: "/etc/ansible/ansible_cfg"
+      line: "interpreter_python=auto_silent"
+      insertafter: '^\[defaults\]'
+      state: present
+     delegate_to: localhost
+     tags: task6
+2.how to run the tasks in master also?/ how to make master as an agent?
+A. in playbook u can mention local host or in invemtory file u can add connection local host
+Method-1: mention local host in playbook
+---
+  - name: "Playing with Ansible and Git"
+    hosts: localhost
+    connection: local 
+    tasks:
+
+    - name: "just execute a ls -lrt command"
+      shell: "ls -lrt"
+      register: "output"
+
+    - debug: var=output.stdout_lines
+Method-2: mention local_action clause in playbook
+- name: create an ec2 instance
+  local_action:
+    module: ec2
+    image: ami-8caa1ce4
+    instance_type: m3.medium
+    key_name: mykey
+    group:
+        - web
+        - ssh
+    instance_tags:
+        type: web
+        env: production
+Method-3: add localhost in inventory file of ansible (default inventory 
+or customized inventory ansible_hosts file in your present working directory)
+Example: host file
+[dev]
+dev1
+dev2
+
+localhost ansible_connection=local (to add local host)
+example2:
+[dev]
+dev1
+dev2
+
+controlmachine ansible_connection=local (to add local host with someother alias name like
+"controlmachine")
+Method 4:
+ansible-playbook \--connection=local \ --inventory 127.0.0.1, \--limit 127.0.0.1 Ansible-Local.yml -i ansible_hosts
+(run this command to run task locally rather than in the hosts mentioned in the playbook)
+
+3.create ansible user in all the machines including master (write playbook /ansible command)
+use user module
+---
+- hosts: all
+  gather facts: yes
+  tasks: 
+  - name: creating ansible user on ansible agents
+    user: 
+      name: ansible
+      state: present
+      delegate_to: localhost 
+      tags: task1
+  - name: creating ansible user on ansible agents
+    user: 
+      name: ansible
+      state: present
+      tags: task2
+or add localhost in inventory file
+
+4.generate keys for ansible user in master -hint:delegate_to
+example:
+---
+- hosts: all
+  tasks:
+  - name: creating a .ssh folder in ansible user in master
+    file: 
+      path: /home/ansible/.ssh
+      state: directory
+      owner: ansible
+      group: ansible
+      mode: 0755
+     delegate_to: localhost
+     tags: task3
+  - name: generating keypair for ansible user in master
+    become_user: ansible 
+    openssh_keypair: 
+      path: /home/ansible/.ssh/id_rsa
+      state: present
+      force: yes
+     delegate_to: localhost
+     tags: task3
+
+5.copy the ansible user public keys from master to agent asnible user  
+  - name: copy sshkey to asnible user in the agent
+    authorized_key: 
+      user: ansible
+      state: present
+      key: "{{lookup('file','/home/ansible/.ssh/id_rsa.pub')}}"
+     tags: task4
+
+6.change /etc/ansible ownership to ansible user in master recursively (ony localhost)
+  - name: change /etc/ansible ownership to ansible user in master recursively 
+    become: yes
+    file: 
+      path: /etc/ansible/
+      owner: ansible
+      group: ansible
+      recurse: yes
+      mode: 0755
+      delegate_to: localhost
+      tags: task5
+
+
+command in ansible to know specific hostgroups ids
+different methods to run ec2 servers
+how to know module names in ansible
+
+1. test all the strategies available in ansible (hint: folder ansible_cfg)
+2. what is inventory file... how to use other inventory file /root/hosts(created file) only 
+a) for one playbook? 
+b) and for all playbooks?
+3. how to change colour codes?
+4. how to run a play on multiple groups? 
+5. how to run a playbook only for 2 servers in hostgroup?
+6. in a hostgroup i have multiple distributions of servers... i want to run a task only on 
+redhat distribution servers... 
+7. i want to forcefully fail my task in ansible how? (failed_when)
+failed_when condition example:
+---
+- hosts: dev
+  tasks: 
+  - name: check file status
+    stat: 
+      path: /tmp/file
+    register: result
+    failed_when: '"exists": false in result.stdout'
+  - debug: 
+      var: result
+
+8. i want to forcefully success my task in ansible how? (changed_when)
+changed_when condition example:
+---
+- hosts: dev
+  tasks: 
+  - name: check file status
+    stat: 
+      path: /tmp/file
+
+9. what is idempotency
+
+1. how to modify the files in agent
+A. There are several options, depending on your purpose.
+The lineinfile - module is the best option, if you just want to add, replace or 
+remove one line.
+The replace - module is best, if you want to add, replace or delete several lines.
+The blockinfile - module can add several lines, surrounded by markers.
+
+If you only want to change two or three lines, you could use as many calls of lineinfile. 
+To change a whole config file, I would recommend, like the commenters suggest, 
+use the template - module.
+
+2. i have a dev hostgroup with multiple distributions... now i want to shut down 
+redhat 6 version distribution?
+3. i have 10 servers in a hostgroup and 5 tasks in my playbook... 
+how to run 1,2 parallel in all servers? (hint:set poll=0)
+4. why ansible is idempotency tool?
+5. in palybook i given dev hostgroup but while running playbook i would like run in 
+test hostgroup, is it possible?
+can i change or provide hostgroup name in playbook run time?
+6. what is diff b/n shell and command?
+
+provide sudo access to ansible user in all systems including master
+
+
+ANSIBLE  NOTES
+
+1. What is ansible? 
+a. ansible is a configuration management tool. by using this we can manage 
+the configurations on anh number of hosts without login manually.
+it is also called as agentless and push based configuration management tool
+
+Ansible uses ssh protocol to connect with the agents
+
+2. How to setup communication between master and agents? 
+(this method is also called as passwordless authentication)
+a. First login to master and genereate the keys by using "ssh-keygen" 
+the above command will generate public and private keys for that particular user
+under /home/user/.ssh
+now copy the public key from master
+b. login to your agent and cd to /home/username/.ssh folder and paste your key 
+in authorized_keys file 
+c. from master try to test the ssh connectivity with agent 
+by using "ssh ip-address"
+
+
+
+TASKS:
+1. how to copy files from agent to master
+2.  i have master and 2 agents (a and b)... now i want to copy a file from a to b
+
+in roles create user and give him sudo rights
+
+
+TASKS: 
+
+1) if i am connecting to slave machines using ansible (normal user) then how to perform 
+admin tasks? 
+2) in a host group i have multiple servers and for one of the servers i want to perform my 
+task by using a particular user in agent
+
+
+
+ANSIBLE DRIVE FOLDER
+
+Ansible:
+========
+--> Ansible is a configuration management tool, To do bulk tasks on number of servers we will use it. (Competitors are puppet/chef)
+--> Ansible is also called agentless and push based Configuration Management tool.
+--> Puppet and chef are agent based and pull based tools (every client will need Agent, from client we need to pull config from master)
+--> Ansible is a tool to manage our infrastructure, it will reduce our manual effort.
+
+ How to Setup Ansible and pre-requisites:
+========================================
+Ansible master:
+--> EC2 for ansible master and install ansible in it.
+--> SSH keys should be generated in master (ssh-keygen).
+--> cd ~/.ssh
+--> cat id_rsa.pub and copy the key 
+Ansible Client:
+--> install python on all Client servers (ansible modules are written in python hence python needed).
+--> cd ~/.ssh
+--> vi authorized_keys and paste the key you copied from master.
+--> vi /etc/ssh/sshd_config   and make “passwordauthentication no” to “passwordauthentication yes”  and restart sshd service.
+Go back to master and do ssh to all your clients.
+
+ 
+ 
+Host/inventory file:
+====================
+/etc/ansible/hosts -> contains all client IP/DNS names as group 
+                  -> called inventory file 
+          -> all client host as group
+ 
+ 
+--> To test the ansible inventory(parameters)
+    #ansible -m ping all (Verify the communication)
+
+ 
+ 
+What is Ansible module??
+Ansible module is a python program to do any task in client machine.
+for e.g. ping - used to communicate between master and clients.
+         copy - used to copy files/directories between master and clients.
+       
+Below are absible modules
+    yum, file, service, copy, command, shell, user, group, git ,ec2
+ 
+--> To list all ansible modules
+    #ansible-doc -l
+ 
+--> To search a module
+    #ansible-doc -l | grep <module> (ex, copy)
+
+--> We can use the below as man page like in linux,
+    #ansible-doc -s yum
+
+#############################################################################
+ 
+--> To check ansible version
+    #ansible --version
+ 
+--> To install a package in client from master's in application tag servers.
+    #ansible -m yum -a "name=git state=present" <application>
+ 
+    name --> package name
+    state --> options
+    application --> group
+ 
+--> To remove a package
+    #ansible -m yum -a "name=git state=absent" <application>
+ 
+ 
+ 
+--> To copy a file from master to clients
+    #ansible -m copy -a "src=ansible.cfg dest=/tmp" centos
+ 
+    src --> source file
+    dest --> destination path
+    centos --> it's group of tag servers
+ 
+--> To delete a file in clients from master
+    #ansible -m file -a "path=/tmp/ansible.cfg state=absent" centos
+ 
+--> To create a file in clients from master
+    #ansible -m file -a "path=/tmp/file1 state=touch" centos
+ 
+--> If we don't know which module to use, then try with command or shell module.
+    (If we know the commands in linux)
+    #ansible -m command -a "yum install docker -y" centos  
+ 
+(Here we can use shell also but both command & shell are same).
+ 
+    By using below we can list most of linux commands.
+ 
+   
+ 
+--> To create a user in clients from master.
+    #ansible -m user -a "name=venkat state=present" all
+ 
+
+ 
+Ansible Roles:
+==============
+---> Is a combination of playbooks & set of rlated tasks and which can be called from any playbook by using the role.
+---> directory structure of roles as below,
+ 
+    tasks --> (Main directory in role), if we call any role this taks will be executed.
+    files --> If we use copy module under the tasks directory then it will look for actual file under the file directory.
+    template --> It is similar to files directory but sample files(with variables) will be available under template folder.
+    vars --> Variables will be available here and which will be replace in template folder before copy to the clients.
+    defaults --> It is similar to vars.
+    handlers --> When changed is equals to true then only the handlers will be executed.The module name is notify. 
+    meta --> It is just information of our role.
+ 
+--> To create roles
+    #ansible-galaxy init <group>
+
+ 
+Task:
+=====
+1) Create ansible user in master and clients
+2) Add sudo access to ansible user in master and all clients
+3) Generate keys for ansible user in master
+4) Login to clients with ansible user and paste the keys from master into authorized file
+5) To execute the playbooks in master along with clients
+6) I want to clone git repository by using playbook
+7) I want to create a docker container by using playbook
+8) I want to change the permission of file in client by using playbook
+9) I want to search/replace a word in a file in client by using playbook
+10) How can i ignore gathering facts in playbook
+11) I want to build EC2 instance by using ansible playbook
+
+ansible questions:
+
+
+what is ansible?
+difference between ansible , chef, puppet?
+prerequisites for ansible?
+what is playbook?
+what is role?
+difference between playbook and role?
+what is inventory file?
+what is module?
+what type of playbook or role you have worked?
+How to replace a line or word in a file using ansible playbook ?
+How to clone a git repo in ansible ?
+Disable selinux , firewalls?
+Create docker container in ansible ?
+Kernel upgrade using ansible ?
+EC2,S3 creation in ansible ?
+Set password less authentication using ansible ?
+User and group creation?
+Check user exist or not and if no user create a user?
+Create a docker image using ansible ?
+Verify file exists or not ?
+Copy a file from URl using ansible ?
+Copy a file using ansible ?
+Check package version if package version is less than desired then upgrade the package?
+Create a security group and open ports?
+Create Ami using ansible?
+Check server status and restart the server?
+Create a snapshot using ansible ?
+auto addition of client in inventory file?
+how to run playbook with sudo access on clients?
+how to run single playbook with different users in single client?
+
+
+Classroom tasks:
+1. How can i make my ansible master as a client?
+2. Create a ansible user in all your clients and master
+    provide sudo access to ansible user in all the servers
+Generate ssh keys for ansible user in master
+login to your clients with ansible user and paste your master key into authorized keys file
+3. How to change default inventory file?
+4. How to use one more inventory file?
+5. I want to run my ansible commands in multiple servers in a group not complete group
+
+ 
+ansible -m setup centos  --> to gather the information about our clients
+ansible-playbook 1stplaybook.yaml --> To run the playbook
+ 
+ansible-playbook 1stplaybook.yaml --check  --> to test the play book(dry run/preview)
+ansible-playbook 1stplaybook.yaml --syntax-check --> Syntax check
+ansible-playbook 1stplaybook.yaml --list-tasks  --> To list the how many tasks in playbook
+ansible-playbook 1stplaybook.yaml --step  --> TO execute the task in interactive mode(Y/N/C)
+ansible-playbook 1stplaybook.yaml --start-at-task="starting the httpd service"  --> To start from perticular task
+ ansible-playbook playbook.yml --list-tags  >> . To list the how many tags in playbook
+ ansible-playbook playbook.yml --tags httpd    >> to run perticular tags
+ansible-playbook playbook.yml --skip-tags httpd,user     >> to skip particular tags
+ 
+#########install awscli and boto to spin up ec2 instance 
+Python 2.7 version
+    sudo yum install awscli
+    aws configure
+    curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+    sudo python get-pip.py
+    pip install boto --user
+
+ # Basic provisioning example
+---
+- hosts: localhost
+  tasks:
+  - name: create EC2 instance
+    ec2:
+      key_name: xxxxx
+      instance_type: t2.micro
+      image: ami-02eac2c0129f6376b
+      wait: yes
+      group: Console-Access 
+      count: 1
+      vpc_subnet_id: subnet-6093904d
+      assign_public_ip: yes
+      region: us-east-1
+
+
+Important links:
+
+   https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable
+

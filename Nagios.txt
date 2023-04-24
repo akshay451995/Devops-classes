@@ -1,0 +1,23 @@
+	NAGIOS
+LDAP - to login same users as agents in many servers at a time
+(no need to create users in all servers)
+
+
+
+
+
+
+
+
+
+
+
+		TASKS
+1) how to monitor docker container
+2) how to monitor kubernetes cluster and pod
+3) how to monitor ec2 service in aws account 
+4) how to monitor a web url
+5) how to integrate slack/skype channel
+hint: alert should come to skype channel
+6) how to reset admin password
+7) how to backup and restore nagios configuration 

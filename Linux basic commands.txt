@@ -1,0 +1,230 @@
+
+Creating directories and files
+
+
+Dir
+mkdir dirname - make directory 
+rmdir dirname - remove empty directory 
+rm -rf dirname - (recursively, f-forcedly)
+
+Files
+1. touch
+2. cat
+3. vi editor
+
+
+1. touch file - create an empty file
+
+2. cat file -read the data of the file 
+	cat >file -write the data, also overwrites the existing data 
+	cat >>file - append the data 
+
+3.  vi editor 
+	This works in three modes
+	a. Escape mode (Default mode)
+	b. Insert mode (editing mode) 
+	c. Command mode (save/ discard the changes)
+
+	Insert mode - 
+	i - start inserting from left of current position
+	a - start inserting from right of current position
+	I - start inserting from the beginning of the line
+	A - start inserting from the ending of the line 
+	o - Insert a new line below the current line
+	O - Insert a new line above the current line 
+
+	Escape mode - 
+	G - go to the last line 
+	gg - go to the first line
+	yy - copy the line
+	p - paste the copied line 
+	u - undo the previous action
+	ctrl+r - re-do the precious action
+
+	Command mode - 
+	:wq! (:- command mode, w-save/write, q-quit/close, !-forcedly)
+	:q! 
+	:wq
+	:q
+	:se nu (give temporary numbering to the lines)
+	:se nonu (remove temporary numbering to the lines)
+
+cp file1 file2 (or cp file1 -path of source file, file2 -path of dest. file) (copy file)
+mv  file1 file2 (same as above, and also rename the file) (rename file) 
+
+how to know release version - cat /etc/os-release
+
+User management- 
+
+useradd user - create a new user
+id user - check whether the user is present 
+passwd user - to set the password for the user
+userdel user - remove the user 
+
+cat /etc/passwd -how to check all the users in the server
+to list only the last users
+tail /etc/passwd or tail -n 5 /etc/passwd
+head /etc/passwd or head -n 5 /etc/passwd
+
+cat /etc/group -how to check all the groups in the server
+
+groupadd group - create a new group 
+
+how to provide login access to the users
+vi /etc/ssh/sshd_config  
+	edit (password authentication no to yes)
+systemctl restart sshd
+
+how to provide sudo access to the users
+vi /etc/sudoers
+
+add at end of the file 
+user ALL=(ALL)  ALL
+
+sudo access to groups
+%group ALL=(ALL)  ALL
+
+1. How to provide password less sudo access to a user in linux? 
+user ALL=(ALL)  NOPASSWD: ALL
+
+2. How to provide sudo access for a user in linux to specific commnads? (limited sudo access)
+	ex: user should be able to add users but not delete 
+	like execute (sudo useradd user)
+	solution: user ALL=(ALL)   NOPASSWD: path/to
+which command gives path/to/command 
+
+
+Permissions and Ownerships
+ll
+drwxrwxr-x 2 lakshman lakshman 6 Aug 19 02:47 d3
+
+drwxrwxr-x   	2 	 amar amar   6	  Aug 8 01:50	    d1
+permissions  hardlink	ownerships  size  time stamp	name of item
+
+	d		rwx			rwx		r-x   
+type of item	permission of user owner     group owner    all other users
+
+
+commands
+
+getent group groupname (to check all the users in the group)
+cat /etc/passwd (list out all the users)
+cat /etc/group (list out all the groups) 
+chmod 777 item (to alter the permissions)
+usermod -G group user (to add user to group)
+usermod -aG group user (to add user to a new group without exiting from any other group)
+usermod -g group user (to change the default group of the user)
+chown user item (change the user owner)
+chgrp group item (change the group owner)
+chown uid/user:gid/group item (change user owner and group owner at once)
+groups (which all groups the current working user is present in)
+gpasswd -d user group (to remove a user from group)
+
+
+
+Managing Applications
+
+Windows - 
+	-.exe
+	-.zip
+
+Linux - 
+	-.rpm (RedHat Package Managers)
+	-.tar/.jar/.zip
+	- system Binaries
+	- yum (yellowdog updater modified) - package manager in Linux 
+	yum works for only RHEL family (RedHat, CentOS, Fedora, Amazon Linux)
+	most advanced method to isntalll applications in Linux
+
+	- apt (Ubuntu, Debian)	
+
+yum install pkg (add -y to install without prompt)
+yum remove pkg (add -y to remove without prompt)
+yum repolist - shows repositories
+
+pkg -version (to know the version of the package installed)
+alternatives --config pkgname (allows to slect from different versions installed in system)
+
+rpm -qa - list all the packages installed on the server
+rpm -qa | grep pkg - list all the packages with the keyword
+
+wget url - download files from websites
+curl url - check the connectivity (along with -o option, it will also download the content from internet)
+
+
+systemctl start pkg - start application
+systemctl stop pkg - stop application
+systemctl restart pkg - restart application
+systemctl status pkg - show status of application
+systemctl enable pkg - enable application after closing server
+
+
+free -m (to get the infromation about the memory and RAM)
+lscpu (cpu info)
+find / -name nameoffile (gives location of file)
+lsblk (list the block devices) (shows memory info)
+uname -a (to show kernel info)
+uptime (shows the time from which the system is running)
+who(who are all the users using the system)
+w (which user has logged in from which server)
+date (shows date, time and zone)
+hostnamectl set-hostname 
+ps -ef (shows all the processes running)
+top(shows uptime, tasks, date, memory, processes running )
+history (shows all the commands we used previously in the server)
+kill -9 process id number (to end a specific process running)
+df -h (to get the file system)
+
+
+ 
+Adding a storage device 
+
+df -h (shows file systems)  
+lsblk (list the block devices)
+
+fdisk /dev/xvdf (or block device name)(to format disk and create partitions)
+
+mkfs.ext4 /dev/xvdf1 (or xvdf2 based on partition name) (make file systems)
+
+create directory and mount partitions in respective directories
+
+mount /dev/xvdf1(or partition name) /dir-name (mount the volumes on respective directories created)
+
+add the created volumes in fstab to make the filesystems persist even after restart
+vi /etc/fstab
+in fstab file place the following command
+/dev/xvdf1 /data1 (data1 is filename on which partition is mounted)  ext4 defaults 0 0
+
+Troubleshooting
+telnet serverdns port number
+
+
+AWS
+1.  Data center Architecture
+2. Virtualization
+3. AWS regions & AZ's
+4. IP address
+
+IPv4 - 32 bit size 0.0.0.0
+IPv6 - 128 bit size 0.0.0.0.0.0
+
+
+ssh -1 key-name-with-extension ec2-user@pvt-ipaddress-of-network-u-wnat-to-connect-to (connect to other servers through VPN-virtual private networks)
+ifconfig  (shows loopback address to refer to myself)
+
+To mount block storage
+mkfs.ext4 /dev/xvdf (to format the attached block device)
+mkdir /app-name-or-file-name (to name the block storage file name)
+mount /dev/xvdf /app-name-or-file-name (to mount the storage)
+lsblk (shows disk informmation along with partitions)(check with lsblk  command to see if it is mounted)
+df -h (shows storage file systems)(to check the file systems after mounting EFS)
+
+
+PUBLIC AND PRIVATE CLASS IPS
+
+public ips				private ips
+class a - 0.0.0.0 to 126		10 
+class b - 127 to 191			172
+class c - 192 to 223			192
+class d - 224 to 239
+class e - 240 to 255

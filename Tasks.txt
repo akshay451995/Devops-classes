@@ -1,0 +1,108 @@
+check copy paste in linux
+SSH
+
+TELNET
+
+FTP
+
+TOMCAT
+
+HTTPD
+
+HTTPS
+
+APACHE
+
+NGINX
+
+NODEJS
+
+JAVA
+
+.NET
+
+C,C++
+
+MYSQL
+
+POSTGRESQL
+
+MONGODB
+
+DNS
+
+DHCP
+
+SAP
+
+SMTP
+
+SNMP
+
+STMS
+
+PROXY
+
+NFS
+
+SAMBA
+
+POSTFIX
+
+NAGIOS
+
+GIT
+
+JENKINS
+
+DOCKER
+
+ANSIBLE
+
+MAVEN
+
+SONAR
+
+NEXUS
+
+KUBERNETES
+
+CHEF
+
+PUTTY
+
+PUPPET
+
+
+what is the configuration file for applications
+
+what is app
+what is the port number for app 
+what is the configuration file for app
+
+
+install application and start  application
+
+check my ip for both wifi
+try cat >filename
+and check undo option for the file
+
+
+
+1) i have ec2 instance with t2.micro (1gbram/1cpu), i am getting some performance issues, 
+so find out how to increase it? 
+2) i lost my data in ebs, how to recover it? 
+3) i have ec2 instance in  mumbai region. i need one more ec2 instance in us region 
+with the same setup. tell me how to do it?
+4) i am not able to connect to ec2 instance. what could be the reason?
+5) your ec2 instance is performing very slow? trouble shoot?
+6) how to mount s3 bucket in ec2 instance?
+7) can i get internet in private instance? if not pls give the procedure to setup.
+8) how to permanently mount ebs file system? (hint: how to add data in a praticular file)
+9) how to increase root disk file system storage? can we decrease it? 
+10) i have ebs volume in ap south-1a and i would like to attach it to ap-south-1b ec2 
+instance or another region server? how will you do it? 
+
+
+
+

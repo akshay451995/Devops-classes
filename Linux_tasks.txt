@@ -1,0 +1,93 @@
+1) how to check ram and cpu in Linux? 
+
+
+2) what is process?
+
+
+3) how to check any application status? 
+
+
+4) how to check one (any)application is installed or not? 
+
+
+5) how to check which Linux distribution u r using (such as redhat, centos) ? 
+
+
+6) what is swap ? 
+
+
+7) what is service? 
+
+
+8) how to check one file is available or not? 
+1)  how can i check how many users i have in my linux box? and how many users logged in currently?
+
+
+2) how to check and change system time and time zone?
+
+
+3) what is host name and how to change?
+
+
+4) what is ip address ? how to check system ip address?
+
+
+5) what is system log file and its path ?
+
+1) how to lock/inactive a user? 
+
+
+
+
+2) difference between root and normal user? 
+
+
+3) what is service and where service files are located?
+ 
+4) what is process? 
+
+5) wht is kernel?
+
+1) how to check an rpm package is installed or not (example java) 
+
+
+2) what is ~ ? 
+
+
+3) what is shell prompt? 
+
+
+4) what is # in shell prompt? 
+
+
+5) what is $ in shell prompt?
+
+1) how to check system time and change it? 
+
+
+2) how to check how many harddisks I have? 
+
+
+3) what is filesystem(drive in windows) ? How to check how many I have? 
+
+
+4) how to check how many users I have total in my system? 
+
+
+5) how to add a user into a group? 
+
+Ex: amar user into sam group
+
+1) what is hostname? How to change it? 
+
+
+2) how to find out a file or directory full path ( which location it is there) 
+
+
+3) what is process? How to kill a process? 
+
+
+4) how to check application status? 
+
+
+5) how to check since when my system is running?

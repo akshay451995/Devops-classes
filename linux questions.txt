@@ -1,0 +1,15 @@
+Linux:
+
+1)What are the Distributions u r familer with?
+2)how to check Ram,CPU,Disk Space And File System?
+****3)filesystem is full what is your approuch?( du -sh *)disk is full but 
+files r not visible why?
+4)how to check Kernal Version?
+5)how to check system architecture?
+6)who login to my system?
+7)how to check time,date?
+8)how much time it is taking to for command to exicute?
+9)your sys is perfoming very slow,what could be reason?
+*****10) you r unable to login in to the system what is your approuch?
+11)What is the defualt user you r login?
+*****12)How to allow other user to login to your ec2-instance?(Hint:ssh config file modification)
